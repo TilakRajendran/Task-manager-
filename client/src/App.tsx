@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
+import Home from "./pages/Home";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
@@ -30,7 +31,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={() => <ProtectedRoute component={Dashboard} />} />
+      <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path={"/tasks"} component={() => <ProtectedRoute component={Tasks} />} />
       <Route path={"/404"} component={NotFound} />
