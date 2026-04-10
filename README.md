@@ -298,7 +298,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [Manus](https://manus.im) — AI-powered development platform
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
@@ -306,14 +306,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Database ORM by [Drizzle](https://orm.drizzle.team/)
 - API framework by [tRPC](https://trpc.io/)
 
-## 📞 Support
 
-For issues, questions, or suggestions, please open an issue on GitHub or contact the development team.
-
----
-
-**Last Updated:** April 10, 2026
-
-**Version:** 1.0.0
-
-**Status:** Production Ready ✅
