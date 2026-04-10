@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, tasks, InsertTask } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,70 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserTasks(userId: number, filters?: { status?: string; priority?: string; category?: string; search?: string }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [eq(tasks.userId, userId)];
+
+  if (filters?.status && ['todo', 'in-progress', 'done'].includes(filters.status)) {
+    conditions.push(eq(tasks.status, filters.status as 'todo' | 'in-progress' | 'done'));
+  }
+  if (filters?.priority && ['low', 'medium', 'high'].includes(filters.priority)) {
+    conditions.push(eq(tasks.priority, filters.priority as 'low' | 'medium' | 'high'));
+  }
+  if (filters?.category && ['Work', 'Personal', 'Study', 'Other'].includes(filters.category)) {
+    conditions.push(eq(tasks.category, filters.category as 'Work' | 'Personal' | 'Study' | 'Other'));
+  }
+  if (filters?.search) {
+    conditions.push(sql`${tasks.title} LIKE ${`%${filters.search}%`}`);
+  }
+
+  return db.select().from(tasks).where(and(...conditions)).orderBy(desc(tasks.createdAt));
+}
+
+export async function getTaskById(taskId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(tasks).where(and(eq(tasks.id, taskId), eq(tasks.userId, userId))).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createTask(userId: number, data: Omit<InsertTask, 'userId'>) {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+
+  const result = await db.insert(tasks).values({ ...data, userId });
+  return result;
+}
+
+export async function updateTask(taskId: number, userId: number, data: Partial<InsertTask>) {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+
+  const result = await db.update(tasks).set(data).where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)));
+  return result;
+}
+
+export async function deleteTask(taskId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+
+  const result = await db.delete(tasks).where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)));
+  return result;
+}
+
+export async function getTaskStats(userId: number) {
+  const db = await getDb();
+  if (!db) return { total: 0, completed: 0, inProgress: 0, pending: 0 };
+
+  const userTasks = await db.select().from(tasks).where(eq(tasks.userId, userId));
+  
+  return {
+    total: userTasks.length,
+    completed: userTasks.filter(t => t.status === 'done').length,
+    inProgress: userTasks.filter(t => t.status === 'in-progress').length,
+    pending: userTasks.filter(t => t.status === 'todo').length,
+  };
+}
